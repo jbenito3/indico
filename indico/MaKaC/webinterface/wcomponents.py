@@ -82,6 +82,7 @@ from indico.web.http_api.util import generate_public_auth_request
 import pkgutil
 import pkg_resources
 from MaKaC.common.Announcement import getAnnoucementMgrInstance
+from MaKaC.roomMapping import RoomMapperHolder
 import hashlib
 
 
@@ -5394,12 +5395,17 @@ class WRoomBookingRoomDetails( WTemplated ):
         vars["Bar"] = Bar
         vars["withConflicts"] = False
         vars["currentUser"] = self._rh._aw.getUser()
-
+        room_mapper = RoomMapperHolder().match({"placeName": self._rh._room.locationName}, exact=True)
+        if room_mapper:
+            vars["show_on_map"] = room_mapper[0].getMapURL(self._rh._room.name)
+        else:
+            vars["show_on_map"] = urlHandlers.UHRoomBookingMapOfRooms.getURL(roomID=self._rh._room.id)
         return vars
 
-class WRoomBookingDetails( WTemplated ):
 
-    def __init__(self, rh, conference = None):
+class WRoomBookingDetails(WTemplated):
+
+    def __init__(self, rh, conference=None):
         self._rh = rh
         self._resv = rh._resv
         self._conf = conference
